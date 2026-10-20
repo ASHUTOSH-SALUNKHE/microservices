@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kafka + Spring Boot — Animated Architecture Lab</title>
+<style>
+:root{
+  --bg:#07111f;--panel:#0d1b2c;--panel2:#10233a;--panel3:#132a44;--line:#24425e;
+  --text:#edf5ff;--muted:#a8bdd2;--cyan:#58d8f5;--blue:#6ea8ff;--green:#53e0a1;--yellow:#ffd166;
+  --orange:#ffab70;--pink:#ff79b0;--red:#ff6b7a;--purple:#ba9cff;--shadow:0 18px 55px rgba(0,0,0,.25)
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 15% 0%,#132c49 0,transparent 40%),radial-gradient(ellipse at 95% 10%,#1d2144 0,transparent 34%),var(--bg);color:var(--text);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,select{font:inherit}button{cursor:pointer}a{color:var(--cyan)}.wrap{max-width:1600px;margin:auto;padding:24px clamp(14px,2.5vw,38px) 56px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:26px}.brand{display:flex;gap:14px;align-items:center}.brand-mark{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(145deg,#3cd8ef,#5f82ff);color:#07111f;font-size:23px;font-weight:900;box-shadow:0 8px 28px #38c9e933}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--cyan);font-weight:800}.brand h1{font-size:clamp(21px,3vw,34px);letter-spacing:-.035em;margin:2px 0 0}.controls{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid #35516d;background:#11243a;color:var(--text);padding:9px 13px;border-radius:10px;display:inline-flex;gap:8px;align-items:center;transition:.2s}.btn:hover{border-color:var(--cyan);transform:translateY(-1px)}.btn.primary{background:var(--cyan);color:#061321;border-color:var(--cyan);font-weight:800}.btn.danger{border-color:#8b4251;color:#ffb4bf}.btn.active{box-shadow:0 0 0 2px #58d8f555;border-color:var(--cyan)}.hero{display:grid;grid-template-columns:1.25fr .75fr;gap:20px;align-items:stretch;margin-bottom:22px}.hero-main,.hero-side,.panel{border:1px solid #25435f;background:linear-gradient(155deg,#10243aee,#0a1727f5);border-radius:20px;box-shadow:var(--shadow)}.hero-main{padding:clamp(20px,3vw,34px);position:relative;overflow:hidden}.hero-main:after{content:"";position:absolute;width:330px;height:330px;border-radius:50%;border:1px solid #58d8f51a;right:-110px;top:-140px;box-shadow:0 0 0 35px #58d8f50a,0 0 0 70px #58d8f506;pointer-events:none}.hero h2{font-size:clamp(25px,3vw,40px);line-height:1.08;max-width:850px;letter-spacing:-.045em;margin:9px 0 14px}.hero p{color:var(--muted);max-width:850px;margin:0}.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}.chip{font-size:12px;border:1px solid #2b4c69;border-radius:999px;padding:6px 10px;color:#cde6fa;background:#13283f}.chip.good{color:var(--green);border-color:#26745d}.hero-side{padding:22px;display:flex;flex-direction:column;gap:13px}.metric{padding:12px 14px;background:#091827;border:1px solid #1e3a53;border-radius:13px;display:flex;justify-content:space-between;align-items:center;gap:12px}.metric span{color:var(--muted);font-size:13px}.metric strong{font-size:18px}.section-title{display:flex;align-items:flex-end;justify-content:space-between;gap:15px;margin:34px 0 13px;flex-wrap:wrap}.section-title h2{margin:0;font-size:clamp(20px,2.5vw,29px);letter-spacing:-.03em}.section-title p{color:var(--muted);margin:5px 0 0;font-size:13px}.tiny{color:var(--muted);font-size:12px}.mono,pre,code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.panel{padding:clamp(14px,2vw,24px)}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}.panel-head h3{margin:0;font-size:17px}.status{display:inline-flex;align-items:center;gap:7px;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--green);font-weight:800}.dot{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 12px currentColor}.legend{display:flex;gap:9px;flex-wrap:wrap}.legend span{font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}.legend i{width:8px;height:8px;border-radius:3px;display:inline-block}.i-leader{background:var(--green)}.i-follower{background:var(--blue)}.i-record{background:var(--yellow)}.i-route{background:var(--pink)}
+/* Main architecture canvas */
+.arch-wrap{overflow:hidden;position:relative;background:linear-gradient(180deg,#081625,#0a1a2b);border:1px solid #213f5c;border-radius:18px;padding:20px;min-height:720px}.arch-grid{display:grid;grid-template-columns:220px minmax(540px,1fr) 255px;gap:24px;align-items:stretch;position:relative;z-index:2}.lane{display:flex;flex-direction:column;gap:13px;min-width:0}.lane-title{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8fa9c5;font-weight:800;display:flex;gap:8px;align-items:center}.node{border:1px solid #2a4b69;border-radius:13px;padding:13px;background:linear-gradient(150deg,#142d46,#0e2033);position:relative;transition:border-color .25s,transform .25s,opacity .25s;min-width:0}.node:hover{border-color:#5a9bc4;transform:translateY(-2px)}.node h4{font-size:13px;margin:0 0 5px}.node p{font-size:11px;color:var(--muted);margin:0}.node .icon{font-size:19px;margin-bottom:7px;display:block}.node .microtag{display:inline-flex;border-radius:5px;padding:3px 6px;margin-top:8px;background:#213e56;color:#bfeaff;font-size:10px}.client-node{border-color:#825b43;background:linear-gradient(145deg,#38291f,#172234)}.client-node .icon{color:var(--orange)}.svc-node{border-left:3px solid var(--cyan)}.svc-node.payment{border-left-color:var(--green)}.svc-node.inventory{border-left-color:var(--purple)}.svc-node.notify{border-left-color:var(--pink)}.db-node{border-style:dashed;border-color:#8b7343}.app-stack{display:grid;gap:10px}.producer-link{display:flex;justify-content:center;align-items:center;flex-direction:column;color:var(--muted);font-size:10px;gap:5px;padding:1px}.arrow-line{height:24px;width:2px;background:linear-gradient(var(--cyan),#4e7896);position:relative}.arrow-line:after{content:"";position:absolute;bottom:0;left:-4px;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--cyan)}.packet{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--yellow);box-shadow:0 0 12px var(--yellow);left:-3px;top:0;animation:packetDown 1.6s linear infinite}.packet.delay{animation-delay:.75s}.topic-stack{display:flex;flex-direction:column;gap:12px}.topic{border:1px solid #24536c;border-radius:14px;padding:12px;background:linear-gradient(145deg,#0f2b3d,#0c2032);position:relative;overflow:hidden}.topic:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cyan)}.topic.payment-topic:before{background:var(--green)}.topic.inventory-topic:before{background:var(--purple)}.topic-name{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}.topic-name strong{font-size:12px;overflow-wrap:anywhere}.topic-name span{font-size:9px;color:var(--cyan);border:1px solid #2f6175;border-radius:5px;padding:3px 5px;white-space:nowrap}.partition-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.partition{border:1px solid #294761;border-radius:9px;overflow:hidden;background:#091827;min-width:0;transition:.25s}.partition .phead{display:flex;justify-content:space-between;align-items:center;gap:4px;padding:7px 7px 6px;background:#152e45;font-size:10px}.badge{font-size:8px;border-radius:4px;padding:2px 4px;font-weight:900;letter-spacing:.02em;white-space:nowrap}.badge.leader{background:#124e3b;color:#68f1b2}.badge.follower{background:#193f64;color:#92c9ff}.badge.down{background:#652e3c;color:#ffabb8}.pbody{padding:7px;min-height:76px}.logline{font-family:ui-monospace,monospace;font-size:9px;line-height:1.55;color:#b6c9dc;white-space:nowrap}.logline b{color:var(--yellow);font-weight:600}.record-pill{margin-top:5px;display:inline-block;border:1px solid #655733;border-radius:5px;color:#f8dda0;padding:3px 5px;font-size:8px;max-width:100%;overflow-wrap:anywhere}.replica-note{font-size:9px;color:#7896b2;margin-top:5px}.leader-chip{color:var(--green)}.cluster-shell{border:1px solid #3c6685;border-radius:17px;padding:13px;background:linear-gradient(180deg,#0d2235cc,#071522f2);min-width:0;position:relative}.cluster-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:2px 2px 12px}.cluster-title strong{font-size:15px}.cluster-title small{font-size:10px;color:var(--muted)}.brokers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:12px}.broker{border:1px solid #30516d;border-radius:12px;background:#0b1b2b;padding:9px;min-width:0;transition:.35s}.broker h4{font-size:11px;margin:0 0 3px;display:flex;align-items:center;justify-content:space-between;gap:4px}.broker-sub{font-size:9px;color:#819bb4;margin-bottom:9px}.replica{background:#112b40;border:1px solid #284b66;border-radius:7px;padding:7px;margin-top:7px;min-width:0}.replica .rtitle{display:flex;justify-content:space-between;gap:3px;align-items:center;font-size:9px;margin-bottom:5px}.replica .mini-record{font-size:8px;color:#b5c9dc;border-left:2px solid var(--yellow);padding-left:5px;overflow-wrap:anywhere}.broker.failed{opacity:.43;border-color:var(--red);filter:grayscale(.5)}.broker.failed:after{content:"BROKER DOWN";display:block;background:#5b2633;color:#ffbbc4;text-align:center;font-size:10px;font-weight:900;margin-top:7px;border-radius:5px;padding:5px}.replica.leader-rep{border-color:#2b8d6b;box-shadow:inset 0 0 0 1px #2b8d6b25}.replica.follower-rep{border-color:#315a7e}.flow-svg{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:visible}.flow-path{fill:none;stroke:#3a7897;stroke-width:2;stroke-dasharray:7 8;opacity:.75;animation:dash 15s linear infinite}.flow-path.secondary{stroke:#4b9e8a}.flow-path.pink{stroke:var(--pink)}.flow-dot{fill:var(--yellow);filter:drop-shadow(0 0 5px #ffcf60);animation:flowPulse 2.2s ease-in-out infinite}.flow-dot.d2{animation-delay:.9s}.flow-dot.d3{animation-delay:1.5s}.flow-note{font-size:10px;color:#87a6c2;text-align:center;margin-top:12px}.consumers-list{display:grid;gap:10px}.group-card{border:1px solid #2b4c68;background:#0c1c2c;border-radius:12px;padding:11px}.group-head{display:flex;justify-content:space-between;align-items:start;gap:8px}.group-head strong{font-size:11px;overflow-wrap:anywhere}.group-card p{font-size:10px;color:var(--muted);margin:5px 0 8px}.member-row{display:flex;gap:5px;flex-wrap:wrap}.member{font-size:9px;background:#1c3e52;border:1px solid #2b6173;border-radius:5px;padding:4px 6px;color:#b5ecfa}.consumer-arrow{color:var(--green);font-size:11px;text-align:center;padding:2px}.warn-note{border:1px solid #745e37;background:#2a2418;color:#f4dba3;padding:10px 12px;border-radius:10px;font-size:11px;margin-top:12px}.fail-note{border:1px solid #75424d;background:#2b1720;color:#ffbdc5;padding:10px 12px;border-radius:10px;font-size:11px;margin-top:10px;display:none}.arch-foot{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;color:var(--muted);font-size:11px;margin-top:14px}.mobile-path{display:none}
+/* Data record / concept sections */
+.two-col{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}.three-col{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.record-layout{display:grid;grid-template-columns:.72fr 1.28fr;gap:12px}.record-list{display:grid;gap:7px;align-content:start}.record-row{border:1px solid #23425c;background:#0a1929;color:var(--text);border-radius:10px;text-align:left;padding:11px;display:flex;justify-content:space-between;gap:8px;align-items:center}.record-row:hover,.record-row.selected{border-color:var(--cyan);background:#102b41}.record-row .rl{min-width:0}.record-row strong{font-size:11px;display:block}.record-row small{color:var(--muted);font-size:10px}.record-row .offset{color:var(--yellow);font-size:10px;font-family:ui-monospace,monospace}.record-detail{background:#071421;border:1px solid #284964;border-radius:12px;padding:14px;min-width:0}.detail-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.mini-tag{font-size:10px;border:1px solid #2b4d69;background:#132a40;border-radius:5px;padding:4px 6px;color:#c6dfef}.detail-title{font-size:13px;margin-bottom:9px}.json{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;color:#bfe5d5;font-size:11px;line-height:1.65}.json .key{color:#89caff}.json .str{color:#c6f09e}.json .num{color:#ffd58b}.json .punct{color:#7b9bb7}.callout{font-size:12px;color:var(--muted);margin-top:12px}.callout strong{color:var(--text)}.concept-card{border:1px solid #264761;background:linear-gradient(150deg,#10263b,#0b1929);border-radius:15px;padding:16px;min-width:0}.concept-card h3{font-size:15px;margin:0 0 7px}.concept-card p{font-size:12px;color:var(--muted);margin:0 0 10px}.concept-card .kicker{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--cyan);font-weight:900;margin-bottom:8px}.line-sample{font-family:ui-monospace,monospace;background:#071421;border:1px solid #223d55;padding:10px;border-radius:9px;font-size:10px;color:#bfdbed;overflow-wrap:anywhere}.key-flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0}.key-box{border:1px solid #325b7a;background:#142f47;padding:8px 10px;border-radius:8px;font-family:ui-monospace,monospace;font-size:11px}.key-arrow{color:var(--cyan);font-weight:900}.partition-mini{display:flex;gap:6px;margin-top:8px}.partition-mini span{flex:1;text-align:center;padding:8px 3px;background:#0b1a29;border:1px solid #284862;border-radius:7px;font-size:10px}.partition-mini .target{border-color:var(--yellow);color:var(--yellow);box-shadow:0 0 0 2px #ffd16619}.lag-visual{background:#081523;border:1px solid #223d55;border-radius:12px;padding:14px;margin-top:12px}.lag-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.lag-stat{background:#10253a;border-radius:8px;padding:9px}.lag-stat small{font-size:9px;color:var(--muted);display:block}.lag-stat strong{font-size:18px}.lag-track{height:12px;background:#21384c;border-radius:999px;margin:13px 0 8px;overflow:hidden}.lag-fill{width:34%;height:100%;background:linear-gradient(90deg,var(--green),var(--yellow));border-radius:999px;transition:width .7s}.lag-legend{display:flex;justify-content:space-between;color:var(--muted);font-size:10px}.control-label{font-size:11px;color:var(--muted);display:block;margin:0 0 6px}.select{background:#0a1929;color:var(--text);border:1px solid #31526e;border-radius:8px;padding:9px;min-width:130px}.control-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.ack-output{padding:12px;border-radius:10px;border:1px solid #2c536b;background:#0a1b2b;font-size:12px;color:#c5dbee;margin-top:10px}.ack-output strong{color:var(--cyan)}.ack-detail{display:grid;gap:8px;margin-top:12px}.ack-line{display:grid;grid-template-columns:70px 1fr;gap:10px;padding:10px;background:#0a1b2b;border:1px solid #1e3a53;border-radius:9px}.ack-line b{color:var(--yellow);font-family:ui-monospace,monospace;font-size:12px}.ack-line span{font-size:11px;color:var(--muted)}.retention-toggle{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}.retention-toggle button{padding:8px 12px;border:1px solid #2c4b67;background:#0b1b2c;color:var(--muted);border-radius:8px;font-size:11px}.retention-toggle button.active{border-color:var(--cyan);color:var(--cyan);background:#102c42}.retention-demo{display:grid;grid-template-columns:1fr 1fr;gap:12px}.log-demo{border:1px solid #294860;border-radius:10px;padding:11px;background:#081624;min-width:0}.log-demo h4{font-size:12px;margin:0 0 8px}.log-row{font:10px/1.45 ui-monospace,monospace;border-bottom:1px solid #152f44;padding:6px 0;display:flex;gap:7px;align-items:start}.log-row:last-child{border-bottom:0}.log-row .off{color:var(--yellow);min-width:38px}.log-row .record{overflow-wrap:anywhere;color:#b6cde0}.log-row.removed{opacity:.34;text-decoration:line-through}.log-row.latest .record{color:var(--green)}.explain{color:var(--muted);font-size:11px;margin-top:10px}.step-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.step-dot{font-size:10px;border:1px solid #31516b;border-radius:7px;padding:6px 8px;color:var(--muted);background:#0b1c2b}.step-dot.active{color:#07111f;background:var(--cyan);border-color:var(--cyan)}.timeline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.time-step{position:relative;border:1px solid #24445f;border-radius:12px;padding:13px;background:#0c1d2d}.time-step .num{font-size:10px;color:var(--cyan);font-weight:900;letter-spacing:.1em}.time-step h4{font-size:13px;margin:5px 0}.time-step p{font-size:11px;color:var(--muted);margin:0}.time-step:after{content:"→";position:absolute;right:-11px;top:45%;z-index:2;color:#688eaa;font-weight:900}.time-step:last-child:after{display:none}.glossary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.gloss-item{border:1px solid #203d56;border-radius:10px;padding:12px;background:#0b1a29}.gloss-item strong{display:block;font-size:12px;margin-bottom:4px}.gloss-item span{font-size:11px;color:var(--muted)}.footer{border-top:1px solid #1d354b;margin-top:34px;padding-top:18px;color:#7894ae;font-size:11px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#d8fce9;color:#06331f;font-weight:800;padding:11px 15px;border-radius:10px;box-shadow:var(--shadow);z-index:99;transition:.25s;font-size:12px}.toast.show{opacity:1;transform:translate(-50%,0)}.muted{color:var(--muted)}.highlight{color:var(--cyan)}.green{color:var(--green)}.yellow{color:var(--yellow)}.pink{color:var(--pink)}.divider{height:1px;background:#1f3b53;margin:12px 0}.pill{border:1px solid #365670;padding:3px 7px;border-radius:999px;font-size:9px;color:#b7d4e9;white-space:nowrap}
+@keyframes dash{to{stroke-dashoffset:-500}}@keyframes packetDown{0%{top:0;opacity:0}15%{opacity:1}85%{opacity:1}100%{top:22px;opacity:0}}@keyframes flowPulse{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}@keyframes glow{0%,100%{box-shadow:0 0 0 0 #58d8f500}50%{box-shadow:0 0 0 4px #58d8f522}}@keyframes drift{0%{transform:translateY(0)}50%{transform:translateY(-3px)}100%{transform:translateY(0)}}.animate-record{animation:glow 2.2s ease-in-out infinite}.run-flash .topic{animation:glow .75s ease-out 2}.run-flash .flow-dot{animation-duration:.5s}.reduced-motion *{animation:none!important;transition:none!important}
+@media(max-width:1200px){.arch-grid{grid-template-columns:190px minmax(470px,1fr) 220px;gap:13px}.arch-wrap{padding:13px}.arch-grid{min-width:940px}.arch-wrap{overflow-x:auto}.flow-svg{display:none}.hero{grid-template-columns:1fr}.hero-side{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.metric{align-items:flex-start;flex-direction:column;gap:3px}.metric strong{font-size:16px}.three-col{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:850px){.two-col,.record-layout{grid-template-columns:1fr}.timeline{grid-template-columns:repeat(2,minmax(0,1fr))}.time-step:after{display:none}.glossary{grid-template-columns:repeat(2,minmax(0,1fr))}.hero-side{grid-template-columns:1fr}.hero-side .metric{flex-direction:row;align-items:center}.retention-demo{grid-template-columns:1fr}}
+@media(max-width:560px){.wrap{padding:13px 10px 35px}.brand-mark{width:40px;height:40px}.controls{width:100%}.controls .btn{flex:1;justify-content:center}.partition-grid{grid-template-columns:1fr}.three-col{grid-template-columns:1fr}.timeline{grid-template-columns:1fr}.glossary{grid-template-columns:1fr 1fr}.lag-stats{grid-template-columns:1fr}.record-row{padding:9px}.hero-main,.hero-side{padding:18px}.section-title{margin-top:25px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark">K</div><div><div class="eyebrow">Spring Boot · Kafka · Microservices</div><h1>Kafka Architecture Lab</h1></div></div>
+    <div class="controls">
+      <button class="btn primary" id="animateBtn" onclick="toggleAnimation()">Ⅱ Pause animation</button>
+      <button class="btn" onclick="runFlow()">↻ Replay event flow</button>
+      <button class="btn danger" id="failBtn" onclick="toggleFailure()">⚡ Simulate Broker 1 failure</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-main">
+      <div class="eyebrow">Interactive reference · Realistic e-commerce scenario</div>
+      <h2>Follow one order from an HTTP request to a <span class="highlight">replicated Kafka event</span> and back out to consumers.</h2>
+      <p>Explore who publishes the record, how the record key selects a partition, how offsets identify records, how leaders and followers replicate the data, and how consumer groups track their progress.</p>
+      <div class="chips"><span class="chip good">● Animated data flow</span><span class="chip">Replication factor = 3</span><span class="chip">3 brokers · KRaft</span><span class="chip">JSON event records</span><span class="chip">Consumer group offsets</span></div>
+    </div>
+    <aside class="hero-side">
+      <div class="metric"><span>Example event</span><strong class="mono">OrderCreated</strong></div>
+      <div class="metric"><span>Partition key</span><strong class="mono">order-1042</strong></div>
+      <div class="metric"><span>Example consumer lag</span><strong class="yellow">22 records</strong></div>
+    </aside>
+  </section>
+
+  <div class="section-title"><div><h2>01 · The end-to-end architecture</h2><p>HTTP creates the order; Kafka distributes durable event records. The consumer apps do not need to call each other directly.</p></div><div class="legend"><span><i class="i-leader"></i> Leader replica</span><span><i class="i-follower"></i> Follower replica</span><span><i class="i-record"></i> Record / packet</span><span><i class="i-route"></i> Event path</span></div></div>
+  <section class="arch-wrap" id="architecture">
+    <svg class="flow-svg" viewBox="0 0 1450 690" preserveAspectRatio="none" aria-hidden="true">
+      <path class="flow-path" d="M155 162 C240 162 255 170 340 170"/><path class="flow-path" d="M370 170 C475 170 490 180 575 180"/>
+      <path class="flow-path secondary" d="M810 180 C920 180 940 160 1035 160"/><path class="flow-path pink" d="M810 290 C930 290 940 370 1030 370"/>
+      <circle class="flow-dot" cx="245" cy="162" r="4"></circle>
+      <circle class="flow-dot d2" cx="470" cy="170" r="4"></circle>
+      <circle class="flow-dot d3" cx="930" cy="180" r="4"></circle>
+    </svg>
+    <div class="arch-grid">
+      <div class="lane">
+        <div class="lane-title">01 · Producers</div>
+        <div class="node client-node"><span class="icon">👤</span><h4>Customer / API client</h4><p>HTTP POST /orders</p><span class="microtag">REST request</span></div>
+        <div class="producer-link"><div class="arrow-line"><span class="packet"></span></div><span>HTTP request</span></div>
+        <div class="node svc-node"><span class="icon">🧾</span><h4>Order Service</h4><p>Spring Boot · validates order, commits DB transaction</p><span class="microtag">OrderCreated event</span></div>
+        <div class="producer-link"><div class="arrow-line"><span class="packet delay"></span></div><span>Transactional outbox (recommended)</span></div>
+        <div class="node db-node"><span class="icon">🗃️</span><h4>Orders DB + Outbox</h4><p>Persist business state and event intent together; relay publishes the event to Kafka.</p><span class="microtag">Avoids dual-write gap</span></div>
+        <div class="node"><span class="icon">📤</span><h4>Kafka Producer client</h4><p>Serializes the event to bytes; uses record key <code>order-1042</code>.</p><span class="microtag">acks=all · retries enabled</span></div>
+      </div>
+
+      <div class="lane">
+        <div class="lane-title">02 · Kafka data plane</div>
+        <div class="cluster-shell">
+          <div class="cluster-title"><div><strong>Kafka Cluster · 3 brokers</strong><br><small>Normal record path: producer → partition leader → followers</small></div><span class="status"><i class="dot"></i> <span id="clusterStatus">CLUSTER HEALTHY</span></span></div>
+          <div class="topic-stack">
+            <div class="topic" id="ordersTopic">
+              <div class="topic-name"><strong>Topic · <code>orders.created.v1</code></strong><span>3 PARTITIONS</span></div>
+              <div class="partition-grid">
+                <div class="partition animate-record" id="p0">
+                  <div class="phead"><strong>Partition 0</strong><span class="badge leader" id="p0Badge">LEADER B1</span></div>
+                  <div class="pbody"><div class="logline"><b>off 0</b> order-1038</div><div class="logline"><b>off 1</b> order-1040</div><div class="logline"><b>off 2</b> order-1042</div><div class="record-pill">key → order-1042</div></div>
+                </div>
+                <div class="partition" id="p1">
+                  <div class="phead"><strong>Partition 1</strong><span class="badge leader">LEADER B2</span></div>
+                  <div class="pbody"><div class="logline"><b>off 0</b> order-1039</div><div class="logline"><b>off 1</b> order-1041</div><div class="logline"><b>off 2</b> order-1044</div><div class="record-pill">key → order-1044</div></div>
+                </div>
+                <div class="partition" id="p2">
+                  <div class="phead"><strong>Partition 2</strong><span class="badge leader">LEADER B3</span></div>
+                  <div class="pbody"><div class="logline"><b>off 0</b> order-1037</div><div class="logline"><b>off 1</b> order-1043</div><div class="logline"><b>off 2</b> order-1045</div><div class="record-pill">key → order-1045</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="topic payment-topic">
+              <div class="topic-name"><strong>Topic · <code>payments.completed.v1</code></strong><span>1 PARTITION</span></div>
+              <div class="partition-grid" style="grid-template-columns:1fr">
+                <div class="partition">
+                  <div class="phead"><strong>Partition 0</strong><span class="badge leader">LEADER B2</span></div>
+                  <div class="pbody"><div class="logline"><b>off 0</b> PAY-2001</div><div class="logline"><b>off 1</b> PAY-2002</div><div class="record-pill">payment event stream</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="topic inventory-topic">
+              <div class="topic-name"><strong>Topic · <code>inventory.reserved.v1</code></strong><span>EVENT STREAM</span></div>
+              <div class="partition-grid" style="grid-template-columns:1fr">
+                <div class="partition"><div class="phead"><strong>Partition 0</strong><span class="badge leader">LEADER B3</span></div><div class="pbody"><div class="logline"><b>off 0</b> RES-301 · order-1042</div><div class="record-pill">stock reservation event</div></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="warn-note">Offsets belong to a single partition. <strong>Partition 0 offset 2</strong> is not the same position as Partition 1 offset 2.</div>
+          <div class="brokers">
+            <div class="broker" id="broker1">
+              <h4><span>🖥 Broker 1</span><span class="pill">:9092</span></h4><div class="broker-sub">Partition replicas stored on this server</div>
+              <div class="replica leader-rep" id="b1p0"><div class="rtitle"><strong>orders · P0</strong><span class="badge leader">LEADER</span></div><div class="mini-record">0 · order-1038<br>1 · order-1040<br>2 · order-1042</div></div>
+              <div class="replica follower-rep"><div class="rtitle"><strong>orders · P1</strong><span class="badge follower">FOLLOWER</span></div><div class="mini-record">replica of P1</div></div>
+              <div class="replica follower-rep"><div class="rtitle"><strong>orders · P2</strong><span class="badge follower">FOLLOWER</span></div><div class="mini-record">replica of P2</div></div>
+              <div class="replica follower-rep"><div class="rtitle"><strong>payments · P0</strong><span class="badge follower">FOLLOWER</span></div><div class="mini-record">replica of payments P0</div></div>
+              <div class="replica follower-rep"><div class="rtitle"><strong>inventory · P0</strong><span class="badge follower">FOLLOWER</span></div><div class="mini-record">replica of inventory P0</div></div>
+            </div>
+            <div class="broker" id="broker2">
+              <h4><span>🖥 Broker 2</span><span class="pill">:9093</span></h4><div class="broker-sub">Leads P1 and payment P0 here</div>
+              <div class="replica follower-rep" id="b2p0"><div class="rtitle"><strong>orders · P0</strong><span class="badge follower" id="b2p0Badge">FOLLOWER</span></div><div class="mini-record">replica of P0</div></div>
+              <div class="replica leader-rep"><div class="rtitle"><strong>orders · P1</strong><span class="badge leader">LEADER</span></div><div class="mini-record">0 · order-1039<br>1 · order-1041<br>2 · order-1044</div></div>
+              <div class="replica follower-rep"><div class="rtitle"><strong>orders · P2</strong><span class="badge follower">FOLLOWER</span></div><div class="mini-record">replica of P2</div></div>
+              <div class="replica leader-rep"><div class="rtitle"><strong>payments · P0</strong><span class="badge leader">LEADER</span></div><div class="mini-record">0 · PAY-2001<br>1 · PAY-2002</div></div>
+              <div class="replica follower-rep"><div class="rtitle"><strong>inventory · P0</strong><span class="badge follower">FOLLOWER</span></div><div class="mini-record">replica of inventory P0</div></div>
+            </div>
+            <div class="broker" id="broker3">
+              <h4><span>🖥 Broker 3</span><span class="pill">:9094</span></h4><div class="broker-sub">Leads P2; keeps other replicas</div>
+              <div class="replica follower-rep"><div class="rtitle"><strong>orders · P0</strong><span class="badge follower">FOLLOWER</span></div><div class="mini-record">replica of P0</div></div>
+              <div class="replica follower-rep"><div class="rtitle"><strong>orders · P1</strong><span class="badge follower">FOLLOWER</span></div><div class="mini-record">replica of P1</div></div>
+              <div class="replica leader-rep"><div class="rtitle"><strong>orders · P2</strong><span class="badge leader">LEADER</span></div><div class="mini-record">0 · order-1037<br>1 · order-1043<br>2 · order-1045</div></div>
+              <div class="replica follower-rep"><div class="rtitle"><strong>payments · P0</strong><span class="badge follower">FOLLOWER</span></div><div class="mini-record">replica of payments P0</div></div>
+              <div class="replica leader-rep"><div class="rtitle"><strong>inventory · P0</strong><span class="badge leader">LEADER</span></div><div class="mini-record">0 · RES-301<br>order-1042</div></div>
+            </div>
+          </div>
+          <div class="flow-note">Replication factor 3 = three copies (one leader + two followers) per partition across brokers in this illustrative layout.</div>
+          <div class="fail-note" id="failNote">Broker 1 is simulated as unavailable. Partition 0 leadership moved to an eligible in-sync replica on Broker 2 for this demonstration. Real elections depend on ISR and cluster configuration.</div>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="lane-title">03 · Consumer groups</div>
+        <div class="node svc-node payment"><span class="icon">💳</span><h4>Payment Service</h4><p>Consumes <code>orders.created.v1</code>; authorizes payment and publishes <code>payments.completed.v1</code>.</p><span class="microtag">group.id=payment-service</span></div>
+        <div class="consumers-list">
+          <div class="group-card"><div class="group-head"><strong>Consumer group · payment-service</strong><span class="badge leader">GROUP A</span></div><p>Two consumer instances share partition assignments in this group.</p><div class="member-row"><span class="member">consumer-1 → P0, P2</span><span class="member">consumer-2 → P1</span></div></div>
+        </div>
+        <div class="node svc-node inventory"><span class="icon">📦</span><h4>Inventory Service</h4><p>Consumes order-created events independently and publishes <code>inventory.reserved.v1</code>.</p><span class="microtag">group.id=inventory-service</span></div>
+        <div class="group-card"><div class="group-head"><strong>Consumer group · inventory-service</strong><span class="badge follower">GROUP B</span></div><p>A different group gets its own progress and can read the same topic independently.</p><div class="member-row"><span class="member">inventory-1 → P0</span><span class="member">inventory-2 → P1</span><span class="member">inventory-3 → P2</span></div></div>
+        <div class="node svc-node notify"><span class="icon">✉️</span><h4>Notification Service</h4><p>Consumes <code>payments.completed.v1</code> and sends confirmation emails.</p><span class="microtag">group.id=notifications</span></div>
+        <div class="warn-note">Within one consumer group, a partition is assigned to at most one consumer at a time. Different groups independently consume the same topic.</div>
+      </div>
+    </div>
+    <div class="arch-foot"><span>➜ Normal flow: client → Order Service → producer → Kafka leader → followers → consumer groups.</span><span>Coordination: modern Kafka uses KRaft; legacy clusters used ZooKeeper.</span></div>
+  </section>
+
+  <div class="section-title"><div><h2>02 · Inspect the actual record</h2><p>A Kafka record has a key, value, optional headers, timestamp and a partition-relative offset.</p></div><span class="pill">Click each row to inspect</span></div>
+  <section class="panel">
+    <div class="record-layout">
+      <div class="record-list" id="recordList">
+        <button class="record-row selected" data-record="0" onclick="selectRecord(0)"><span class="rl"><strong>orders.created.v1 · P0</strong><small>key: order-1042</small></span><span class="offset">offset 2</span></button>
+        <button class="record-row" data-record="1" onclick="selectRecord(1)"><span class="rl"><strong>orders.created.v1 · P0</strong><small>key: order-1040</small></span><span class="offset">offset 1</span></button>
+        <button class="record-row" data-record="2" onclick="selectRecord(2)"><span class="rl"><strong>payments.completed.v1 · P0</strong><small>key: order-1042</small></span><span class="offset">offset 1</span></button>
+        <button class="record-row" data-record="3" onclick="selectRecord(3)"><span class="rl"><strong>inventory.reserved.v1 · P0</strong><small>key: order-1042</small></span><span class="offset">offset 0</span></button>
+      </div>
+      <div class="record-detail"><div class="detail-tags" id="recordTags"><span class="mini-tag">Topic: orders.created.v1</span><span class="mini-tag">Partition: 0</span><span class="mini-tag">Offset: 2</span></div><div class="detail-title" id="recordTitle">Record value · JSON payload</div><pre class="json" id="recordJson">{
+  "eventId": "evt-102",
+  "eventType": "OrderCreated",
+  "orderId": "order-1042",
+  "customerId": "cust-501",
+  "items": [
+    { "productId": "prod-17", "quantity": 2, "unitPrice": 999.5 }
+  ],
+  "totalAmount": 1999.0,
+  "currency": "INR",
+  "createdAt": "2026-10-20T06:15:00Z"
+}</pre><div class="divider"></div><div class="detail-tags"><span class="mini-tag">Header: traceId=tr-7f91</span><span class="mini-tag">Timestamp: broker record time</span><span class="mini-tag">Key: order-1042</span></div><div class="callout"><strong>Key insight:</strong> if the same key is sent through the same keyed partitioning scheme, related records normally route to the same partition, preserving order for that key there. Ordering is not global across all partitions.</div></div>
+    </div>
+  </section>
+
+  <div class="section-title"><div><h2>03 · Record key, partition and offset</h2><p>Watch how the key influences partition placement and why an offset is scoped to its own partition.</p></div></div>
+  <div class="two-col">
+    <section class="panel">
+      <div class="panel-head"><h3>Record key → partition selection</h3><span class="pill">Illustrative routing</span></div>
+      <p class="tiny">The producer sets <code>order-1042</code> as the record key. Kafka's keyed partitioner selects a partition using the key and topic partition configuration.</p>
+      <div class="key-flow"><span class="key-box">key = order-1042</span><span class="key-arrow">→</span><span class="key-box">partitioner</span><span class="key-arrow">→</span><span class="key-box" style="border-color:var(--yellow);color:var(--yellow)">orders P0</span></div>
+      <div class="partition-mini"><span class="target">P0<br><small>order-1042</small></span><span>P1<br><small>other keys</small></span><span>P2<br><small>other keys</small></span></div>
+      <div class="callout">This is an example mapping, not a universal rule that every order key goes to P0. Adding partitions or changing partitioning strategy can change key-to-partition mapping.</div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h3>Offset = position inside one partition</h3><span class="pill">Not a global ID</span></div>
+      <div class="partition-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+        <div class="partition"><div class="phead"><strong>Partition 0</strong><span class="badge leader">P0</span></div><div class="pbody"><div class="logline"><b>0</b> order-1038</div><div class="logline"><b>1</b> order-1040</div><div class="logline"><b>2</b> order-1042</div></div></div>
+        <div class="partition"><div class="phead"><strong>Partition 1</strong><span class="badge leader">P1</span></div><div class="pbody"><div class="logline"><b>0</b> order-1039</div><div class="logline"><b>1</b> order-1041</div><div class="logline"><b>2</b> order-1044</div></div></div>
+      </div>
+      <div class="callout">P0 offset 2 and P1 offset 2 are different records. Each partition is an ordered append-only log. Offsets are not renumbered after retention removes old records, so gaps can remain.</div>
+    </section>
+  </div>
+
+  <div class="section-title"><div><h2>04 · Replication factor and leader–follower behavior</h2><p>A broker is a server. Leadership is per partition, so the same broker can lead several partitions while following others.</p></div></div>
+  <div class="two-col">
+    <section class="panel">
+      <div class="panel-head"><h3>Replication factor = 3</h3><span class="pill">1 leader + 2 followers</span></div>
+      <div class="partition-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+        <div class="partition"><div class="phead"><strong>Broker 1</strong><span class="badge leader">LEADER</span></div><div class="pbody"><div class="logline">orders P0</div><div class="record-pill">serves normal writes</div></div></div>
+        <div class="partition"><div class="phead"><strong>Broker 2</strong><span class="badge follower">FOLLOWER</span></div><div class="pbody"><div class="logline">orders P0 replica</div><div class="record-pill">replicates from leader</div></div></div>
+        <div class="partition"><div class="phead"><strong>Broker 3</strong><span class="badge follower">FOLLOWER</span></div><div class="pbody"><div class="logline">orders P0 replica</div><div class="record-pill">replicates from leader</div></div></div>
+      </div>
+      <div class="step-row"><button class="btn" onclick="toggleFailure()">⚡ Fail / restore Broker 1</button><span class="tiny" id="leaderText">Current leader for orders P0: Broker 1</span></div>
+      <div class="callout">If the leader fails, Kafka may elect an eligible in-sync replica. Replication factor 3 means three copies total; it does not mean three leaders.</div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h3>What leader and follower do</h3><span class="pill">Per partition</span></div>
+      <div class="timeline" style="grid-template-columns:1fr 1fr">
+        <div class="time-step"><div class="num">01 · PRODUCER</div><h4>Send to leader</h4><p>Metadata tells the producer which broker leads the target partition.</p></div>
+        <div class="time-step"><div class="num">02 · LEADER</div><h4>Append record</h4><p>The leader appends the record to its partition log and tracks replica progress.</p></div>
+        <div class="time-step"><div class="num">03 · FOLLOWERS</div><h4>Replicate</h4><p>Followers fetch the leader's log and replicate records. They do not independently lead that same partition at the same time.</p></div>
+        <div class="time-step"><div class="num">04 · ACK</div><h4>Confirm</h4><p>Producer acknowledgement depends on the configured <code>acks</code> mode and replica state.</p></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="section-title"><div><h2>05 · Producer acknowledgements (acks)</h2><p>Choose an acknowledgement mode and read what the producer knows when its send completes.</p></div></div>
+  <section class="panel">
+    <div class="control-row"><label for="ackSelect" class="control-label">Producer setting</label><select id="ackSelect" class="select" onchange="setAck(this.value)"><option value="0">acks = 0</option><option value="1">acks = 1</option><option value="all" selected>acks = all</option></select><span class="pill">Example replication factor = 3</span><span class="pill">min.insync.replicas = 2</span></div>
+    <div class="ack-output" id="ackOutput"><strong>acks=all:</strong> wait for the leader and all replicas currently in the in-sync replica set (ISR) to acknowledge the write. With min.insync.replicas=2, at least two ISR members must be available for an all-acks write to be accepted.</div>
+    <div class="ack-detail">
+      <div class="ack-line"><b>acks=0</b><span>Producer does not wait for a broker acknowledgement. Lowest confirmation overhead, but it cannot know from an ack whether the record was written.</span></div>
+      <div class="ack-line"><b>acks=1</b><span>Wait for the partition leader to acknowledge its local append. A leader failure before replication can risk losing the acknowledged record.</span></div>
+      <div class="ack-line"><b>acks=all</b><span>Wait for acknowledgements from the current ISR. Pair with a suitable replication factor and <code>min.insync.replicas</code> for stronger durability. “All” means all ISR, not necessarily every configured replica if one is out of sync.</span></div>
+    </div>
+  </section>
+
+  <div class="section-title"><div><h2>06 · Consumer group and consumer lag</h2><p>Each group has its own committed offsets. Consumers within one group share partitions; separate groups read the stream independently.</p></div></div>
+  <div class="two-col">
+    <section class="panel">
+      <div class="panel-head"><h3>Same topic, independent groups</h3><span class="pill">Fan-out by group</span></div>
+      <div class="node svc-node" style="margin-bottom:11px"><h4>Topic · orders.created.v1</h4><p>Records at P0, P1, P2 remain available according to retention policy.</p></div>
+      <div class="two-col" style="grid-template-columns:1fr 1fr;gap:10px">
+        <div class="group-card"><div class="group-head"><strong>payment-service</strong><span class="badge leader">GROUP A</span></div><p>Processes orders and publishes payment results.</p><div class="member-row"><span class="member">pay-1 · P0</span><span class="member">pay-2 · P1</span></div><div class="line-sample" style="margin-top:8px">Committed offsets: P0→1228<br>P1→807</div></div>
+        <div class="group-card"><div class="group-head"><strong>inventory-service</strong><span class="badge follower">GROUP B</span></div><p>Reserves stock for the same orders, with separate progress.</p><div class="member-row"><span class="member">inv-1 · P0</span><span class="member">inv-2 · P1</span><span class="member">inv-3 · P2</span></div><div class="line-sample" style="margin-top:8px">Committed offsets: P0→1250<br>P1→810</div></div>
+      </div>
+      <div class="callout">Within a single group, a partition is assigned to at most one consumer at a time. More consumers than partitions means some group members sit idle.</div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h3>Consumer lag monitor</h3><span class="status"><i class="dot"></i> illustrative metrics</span></div>
+      <p class="tiny">Consumer lag ≈ log-end offset − group's committed offset, measured per partition. This example treats the end position as 1,250 and the group next-read/committed position as 1,228.</p>
+      <div class="lag-visual">
+        <div class="lag-stats"><div class="lag-stat"><small>Log end position</small><strong>1250</strong></div><div class="lag-stat"><small>Committed position</small><strong>1228</strong></div><div class="lag-stat"><small>Approx. lag</small><strong class="yellow" id="lagValue">22</strong></div></div>
+        <div class="lag-track"><div class="lag-fill" id="lagFill"></div></div><div class="lag-legend"><span>Consumer's committed progress</span><span>End of log</span></div>
+        <div class="step-row"><button class="btn" onclick="changeLag(-5)">✓ Consumer catches up −5</button><button class="btn" onclick="changeLag(10)">＋ Add 10 new records</button><button class="btn" onclick="resetLag()">Reset</button></div>
+      </div>
+      <div class="callout">A rising lag can indicate that records arrive faster than a group processes them, a downstream dependency is slow, or consumers are unhealthy. Lag is not itself a failure; interpret its trend and processing time.</div>
+    </section>
+  </div>
+
+  <div class="section-title"><div><h2>07 · Retention vs log compaction</h2><p>Retention decides which old data can be deleted. Compaction preserves the latest known value per key over time; it is not an immediate in-place update.</p></div></div>
+  <section class="panel">
+    <div class="retention-toggle"><button class="active" id="deleteBtn" onclick="setRetention('delete')">Delete retention</button><button id="compactBtn" onclick="setRetention('compact')">Log compaction</button></div>
+    <div class="retention-demo">
+      <div class="log-demo"><h4 id="retentionLogTitle">Topic log · cleanup.policy=delete</h4><div id="retentionLog">
+        <div class="log-row removed"><span class="off">off 0</span><span class="record">key=order-1001 · OrderCreated</span></div><div class="log-row removed"><span class="off">off 1</span><span class="record">key=order-1002 · OrderCreated</span></div><div class="log-row"><span class="off">off 2</span><span class="record">key=order-1042 · OrderCreated</span></div><div class="log-row"><span class="off">off 3</span><span class="record">key=order-1047 · OrderCreated</span></div>
+      </div></div>
+      <div class="concept-card"><div class="kicker" id="retentionKicker">Time / size based cleanup</div><h3 id="retentionTitle">Old log segments become eligible for deletion</h3><p id="retentionText">For event streams such as orders.created.v1, a common policy is time-based retention, for example 7 days. Consumers must process within the retention window or use an appropriate replay/source strategy.</p><div class="line-sample" id="retentionConfig">cleanup.policy=delete<br>retention.ms=604800000</div><div class="explain" id="retentionExplain">Kafka deletes eligible log segments, not each individual record at an exact second. Offsets are not renumbered after cleanup.</div></div>
+    </div>
+  </section>
+
+  <div class="section-title"><div><h2>08 · One complete event lifecycle</h2><p>Connect the concepts: key, partition, replication, acknowledgement, consumption, committed offset and lag.</p></div></div>
+  <section class="panel">
+    <div class="timeline">
+      <div class="time-step"><div class="num">STEP 01</div><h4>Order is created</h4><p>Order Service writes its DB transaction and outbox event, then the relay sends a record to Kafka.</p></div>
+      <div class="time-step"><div class="num">STEP 02</div><h4>Partition is selected</h4><p>Record key <code>order-1042</code> is hashed by the configured partitioner; the producer sends to that partition's leader.</p></div>
+      <div class="time-step"><div class="num">STEP 03</div><h4>Record is replicated</h4><p>The leader appends at a partition offset; follower replicas fetch the log. The configured acks mode governs producer confirmation.</p></div>
+      <div class="time-step"><div class="num">STEP 04</div><h4>Group processes it</h4><p>Each consumer group reads independently, processes work, and commits progress. End offset minus committed position gives approximate lag.</p></div>
+    </div>
+    <div class="warn-note"><strong>Production note:</strong> Kafka transactions, idempotent production, an outbox pattern, idempotent consumers, retry topics and dead-letter topics solve different reliability problems. Kafka delivery and database side-effects are not automatically one atomic transaction just because the message is in Kafka.</div>
+  </section>
+
+  <div class="section-title"><div><h2>09 · Quick glossary</h2><p>Keep these distinctions clear when designing or discussing a real Kafka system.</p></div></div>
+  <section class="glossary">
+    <div class="gloss-item"><strong>Broker</strong><span>A Kafka server that stores partition replicas and serves client requests.</span></div>
+    <div class="gloss-item"><strong>Topic</strong><span>A named stream/category of records, such as orders.created.v1.</span></div>
+    <div class="gloss-item"><strong>Partition</strong><span>An ordered log within a topic; distributes storage and consumer parallelism.</span></div>
+    <div class="gloss-item"><strong>Leader replica</strong><span>One replica per partition at a time; normal producer writes go to it.</span></div>
+    <div class="gloss-item"><strong>Follower replica</strong><span>Copies the leader's log and can be eligible for leader election.</span></div>
+    <div class="gloss-item"><strong>Offset</strong><span>A record's position in one partition's log, not a topic-wide/global ID.</span></div>
+    <div class="gloss-item"><strong>Record key</strong><span>Optional key often used for partitioning related records and preserving their per-partition order.</span></div>
+    <div class="gloss-item"><strong>Replication factor</strong><span>Total replicas of one partition, including its leader.</span></div>
+    <div class="gloss-item"><strong>Acknowledgement</strong><span>Producer's configured rule for when a send is considered successful.</span></div>
+    <div class="gloss-item"><strong>Consumer group</strong><span>Consumers sharing work and committed progress for a topic subscription.</span></div>
+    <div class="gloss-item"><strong>Consumer lag</strong><span>How far a group's committed/processed position trails the partition end.</span></div>
+    <div class="gloss-item"><strong>Retention / compaction</strong><span>Delete old data by time/size versus retaining the latest record per key over time.</span></div>
+    <div class="gloss-item"><strong>KRaft</strong><span>Modern Kafka's built-in metadata quorum/coordination mode, removing ZooKeeper dependency.</span></div>
+    <div class="gloss-item"><strong>ZooKeeper</strong><span>Coordination service used by older Kafka deployments; not the broker and not in the normal record path.</span></div>
+    <div class="gloss-item"><strong>Consumer offset</strong><span>The group's stored next-read position for a partition; separate groups have separate offsets.</span></div>
+    <div class="gloss-item"><strong>ISR</strong><span>In-sync replicas considered sufficiently caught up for the configured replication protocol.</span></div>
+  </section>
+
+  <footer class="footer"><span>Kafka Architecture Lab · Self-contained HTML · No external libraries required</span><span>All orders, keys, offsets, metrics and event bodies shown are illustrative teaching data.</span></footer>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite">Animation replayed</div>
+<script>
+const records=[
+ {topic:'orders.created.v1',partition:0,offset:2,key:'order-1042',title:'OrderCreated · record value',headers:'traceId=tr-7f91',json:{eventId:'evt-102',eventType:'OrderCreated',orderId:'order-1042',customerId:'cust-501',items:[{productId:'prod-17',quantity:2,unitPrice:999.5}],totalAmount:1999.0,currency:'INR',createdAt:'2026-10-20T06:15:00Z'}},
+ {topic:'orders.created.v1',partition:0,offset:1,key:'order-1040',title:'OrderCreated · earlier record',headers:'traceId=tr-7f88',json:{eventId:'evt-100',eventType:'OrderCreated',orderId:'order-1040',customerId:'cust-337',items:[{productId:'prod-04',quantity:1,unitPrice:549.0}],totalAmount:549.0,currency:'INR',createdAt:'2026-10-20T06:12:00Z'}},
+ {topic:'payments.completed.v1',partition:0,offset:1,key:'order-1042',title:'PaymentCompleted · downstream event',headers:'traceId=tr-7f91',json:{eventId:'evt-pay-882',eventType:'PaymentCompleted',paymentId:'PAY-2001',orderId:'order-1042',amount:1999.0,currency:'INR',method:'UPI',status:'COMPLETED',completedAt:'2026-10-20T06:15:03Z'}},
+ {topic:'inventory.reserved.v1',partition:0,offset:0,key:'order-1042',title:'InventoryReserved · downstream event',headers:'traceId=tr-7f91',json:{eventId:'evt-inv-301',eventType:'InventoryReserved',reservationId:'RES-301',orderId:'order-1042',warehouseId:'WH-01',items:[{productId:'prod-17',reservedQuantity:2}],status:'RESERVED'}}
+];
+let isPaused=false,brokerFailed=false,lag=22,retentionMode='delete';
+function showToast(message){const t=document.getElementById('toast');t.textContent=message;t.classList.add('show');clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(()=>t.classList.remove('show'),2200)}
+function toggleAnimation(){isPaused=!isPaused;document.body.classList.toggle('reduced-motion',isPaused);document.getElementById('animateBtn').textContent=isPaused?'▶ Resume animation':'Ⅱ Pause animation';showToast(isPaused?'Animations paused':'Animations resumed')}
+function runFlow(){const arch=document.getElementById('architecture');arch.classList.remove('run-flash');void arch.offsetWidth;arch.classList.add('run-flash');arch.scrollIntoView({behavior:'smooth',block:'center'});showToast('OrderCreated event flow replayed')}
+function toggleFailure(){brokerFailed=!brokerFailed;const b1=document.getElementById('broker1'),b2=document.getElementById('broker2');b1.classList.toggle('failed',brokerFailed);document.getElementById('failBtn').textContent=brokerFailed?'✓ Restore Broker 1':'⚡ Simulate Broker 1 failure';document.getElementById('clusterStatus').textContent=brokerFailed?'DEGRADED · ELECTION':'CLUSTER HEALTHY';document.getElementById('failNote').style.display=brokerFailed?'block':'none';document.getElementById('leaderText').textContent=brokerFailed?'Current leader for orders P0: Broker 2 (simulated promotion)':'Current leader for orders P0: Broker 1';
+ const p0Badge=document.getElementById('p0Badge'),b1rep=document.getElementById('b1p0'),b2rep=document.getElementById('b2p0'),b2badge=document.getElementById('b2p0Badge'),b1badge=b1rep.querySelector('.rtitle .badge');
+ if(brokerFailed){p0Badge.textContent='LEADER B2';p0Badge.className='badge leader';b1rep.classList.remove('leader-rep');b1rep.classList.add('follower-rep');b1badge.textContent='UNAVAILABLE';b1badge.className='badge down';b2rep.classList.remove('follower-rep');b2rep.classList.add('leader-rep');b2badge.textContent='LEADER';b2badge.className='badge leader';}
+ else{p0Badge.textContent='LEADER B1';b1rep.classList.remove('follower-rep');b1rep.classList.add('leader-rep');b1badge.textContent='LEADER';b1badge.className='badge leader';b2rep.classList.remove('leader-rep');b2rep.classList.add('follower-rep');b2badge.textContent='FOLLOWER';b2badge.className='badge follower';}
+ showToast(brokerFailed?'Broker 1 down · eligible replica promoted in demo':'Broker 1 restored · original leadership restored in demo');}
+function selectRecord(i){const r=records[i];document.querySelectorAll('.record-row').forEach((b)=>b.classList.toggle('selected',Number(b.dataset.record)===i));document.getElementById('recordTags').innerHTML=`<span class="mini-tag">Topic: ${r.topic}</span><span class="mini-tag">Partition: ${r.partition}</span><span class="mini-tag">Offset: ${r.offset}</span>`;document.getElementById('recordTitle').textContent=r.title;document.getElementById('recordJson').textContent=JSON.stringify(r.json,null,2);const parent=document.getElementById('recordJson').parentElement;parent.querySelectorAll('.record-key-tag').forEach(el=>el.remove());const tags=document.createElement('div');tags.className='detail-tags record-key-tag';tags.innerHTML=`<span class="mini-tag">Key: ${r.key}</span><span class="mini-tag">Header: ${r.headers}</span><span class="mini-tag">Partition offset is local to this partition</span>`;document.getElementById('recordJson').after(tags)}
+function setAck(value){const out=document.getElementById('ackOutput');const data={0:'<strong>acks=0:</strong> the producer does not wait for a broker acknowledgement. It cannot know from an ack whether the broker wrote the record; use only when the loss/uncertainty trade-off is acceptable.',1:'<strong>acks=1:</strong> wait for the partition leader to acknowledge its local append. If that leader fails before followers replicate the record, the acknowledged record may be lost.',all:'<strong>acks=all:</strong> wait for the leader and all replicas currently in the in-sync replica set (ISR) to acknowledge the write. With min.insync.replicas=2, at least two ISR members must be available for an all-acks write to be accepted.'};out.innerHTML=data[value]}
+function changeLag(delta){lag=Math.max(0,lag+delta);document.getElementById('lagValue').textContent=lag;document.getElementById('lagFill').style.width=Math.min(100,Math.max(2,lag/1250*100))+'%';showToast(delta<0?'Consumer progress advanced':'New records arrived; example lag increased')}
+function resetLag(){lag=22;document.getElementById('lagValue').textContent=lag;document.getElementById('lagFill').style.width=(lag/1250*100)+'%';showToast('Lag demo reset')}
+function setRetention(mode){retentionMode=mode;document.getElementById('deleteBtn').classList.toggle('active',mode==='delete');document.getElementById('compactBtn').classList.toggle('active',mode==='compact');const title=document.getElementById('retentionLogTitle'),kicker=document.getElementById('retentionKicker'),h=document.getElementById('retentionTitle'),text=document.getElementById('retentionText'),config=document.getElementById('retentionConfig'),explain=document.getElementById('retentionExplain'),log=document.getElementById('retentionLog');if(mode==='delete'){title.textContent='Topic log · cleanup.policy=delete';kicker.textContent='Time / size based cleanup';h.textContent='Old log segments become eligible for deletion';text.textContent='For event streams such as orders.created.v1, a common policy is time-based retention, for example 7 days. Consumers must process within the retention window or use an appropriate replay/source strategy.';config.innerHTML='cleanup.policy=delete<br>retention.ms=604800000';explain.textContent='Kafka deletes eligible log segments, not each individual record at an exact second. Offsets are not renumbered after cleanup.';log.innerHTML='<div class="log-row removed"><span class="off">off 0</span><span class="record">key=order-1001 · OrderCreated (expired segment)</span></div><div class="log-row removed"><span class="off">off 1</span><span class="record">key=order-1002 · OrderCreated (expired segment)</span></div><div class="log-row"><span class="off">off 2</span><span class="record">key=order-1042 · OrderCreated</span></div><div class="log-row"><span class="off">off 3</span><span class="record">key=order-1047 · OrderCreated</span></div>'}else{title.textContent='Keyed log · cleanup.policy=compact';kicker.textContent='Latest value per key';h.textContent='Older values for the same key can be compacted away';text.textContent='Compaction preserves at least the latest value for each key as cleanup runs. This suits changelog/state topics; it is not the same as keeping every business event forever.';config.innerHTML='cleanup.policy=compact<br>key=product-17';explain.textContent='Compaction is asynchronous. Older same-key records may remain until cleanup; offsets are not rewritten to close gaps. Tombstones can mark a key for deletion.';log.innerHTML='<div class="log-row removed"><span class="off">off 0</span><span class="record">key=product-17 · stock=10 (older value)</span></div><div class="log-row"><span class="off">off 1</span><span class="record">key=product-22 · stock=4</span></div><div class="log-row removed"><span class="off">off 4</span><span class="record">key=product-17 · stock=8 (superseded)</span></div><div class="log-row latest"><span class="off">off 7</span><span class="record">key=product-17 · stock=5 (latest value retained)</span></div>'}}
+// Start with one selected example record to populate the detail panel consistently.
+selectRecord(0);
+</script>
+</body>
+</html>
